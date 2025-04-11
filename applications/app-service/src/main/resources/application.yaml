@@ -11,6 +11,7 @@ spring:
       path: "/h2"
   profiles:
     include: null
+    active: local
   r2dbc:
     url: "r2dbc:postgresql://localhost:5432/apiUsers?currentSchema=public"
     username: "postgres"
@@ -33,35 +34,16 @@ management:
       enabled: true
 cors:
   allowed-origins: "http://localhost:4200,http://localhost:8080"
+
 adapter:
   restconsumer:
     timeout: 5000
     url: "https://reqres.in/api/users"
   sqs:
     region: "us-east-1"
-    queueUrl: "http://localhost:4566/000000000000/sample"
-    endpoint: "http://localhost:4566 # For localstack only"
-resilience4j:
-  circuitbreaker:
-    instances:
-      testGet:
-        registerHealthIndicator: true
-        failureRateThreshold: 50
-        slowCallRateThreshold: 50
-        slowCallDurationThreshold: "2s"
-        permittedNumberOfCallsInHalfOpenState: 3
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 10
-        waitDurationInOpenState: "10s"
-      testPost:
-        registerHealthIndicator: true
-        failureRateThreshold: 50
-        slowCallRateThreshold: 50
-        slowCallDurationThreshold: "2s"
-        permittedNumberOfCallsInHalfOpenState: 3
-        slidingWindowSize: 10
-        minimumNumberOfCalls: 10
-        waitDurationInOpenState: "10s"
+    queueUrl: "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/UsersQueue"
+    endpoint: "http://localhost:4566"
+
 adapters:
   r2dbc:
     host: "127.0.0.1"
@@ -72,3 +54,19 @@ adapters:
     maxInitialSize: 10
     maxPoolSize: 20
     maxIdleTime: 5
+
+entrypoint:
+  sqs:
+    region: "us-east-1"
+    endpoint: "http://localhost:4566"
+    queueUrl: "http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/UsersQueue"
+    waitTimeSeconds: 20
+    maxNumberOfMessages: 10
+    visibilityTimeoutSeconds: 10
+    numberOfThreads: 1
+
+aws:
+  region: us-east-1
+  dynamodb:
+    endpoint: "http://localhost:4566"
+

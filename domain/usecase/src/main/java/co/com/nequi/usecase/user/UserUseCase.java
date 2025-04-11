@@ -3,6 +3,7 @@ package co.com.nequi.usecase.user;
 import co.com.nequi.model.user.User;
 import co.com.nequi.model.user.exceptions.UserException;
 import co.com.nequi.model.user.gateways.CacheRedisAdapter;
+import co.com.nequi.model.user.gateways.DynamoGateway;
 import co.com.nequi.model.user.gateways.SqsUserGateway;
 import co.com.nequi.model.user.gateways.UserPersistencePort;
 import co.com.nequi.model.user.gateways.UserWebClient;
@@ -28,6 +29,8 @@ public class UserUseCase {
                 .flatMap( user -> validateExistsUser(id)
                         .switchIfEmpty(userPersistencePort.save(user))
                         .then(cacheRedisAdapter.saveUser(user))
+                        .then(sqsUserGateway.send(user))
+                        .thenReturn(user)
                 );
     }
 
@@ -51,6 +54,7 @@ public class UserUseCase {
     public Flux<User> findUsersByName(String name) {
         return userPersistencePort.findByName(name);
     }
+
 
 
 }

@@ -20,7 +20,6 @@ public class UserAdapter implements UserPersistencePort {
     @Override
     public Mono<User> save(User user) {
         return userRepository.save(userMapper.toUserEntity(user))
-                .doOnNext(userEntity -> System.out.println("USER DE LA CACHÉ" + userEntity.getId()))
                 .map(userMapper::toUser);
     }
 

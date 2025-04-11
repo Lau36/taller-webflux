@@ -1,7 +1,9 @@
 package co.com.nequi.sqs.sender;
 
+import co.com.nequi.model.user.User;
 import co.com.nequi.model.user.gateways.SqsUserGateway;
 import co.com.nequi.sqs.sender.config.SQSSenderProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -13,12 +15,14 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 @Service
 @Log4j2
 @RequiredArgsConstructor
-public class SQSSender implements SqsUserGateway/*implements SomeGateway*/ {
+public class SQSSender implements SqsUserGateway{
     private final SQSSenderProperties properties;
     private final SqsAsyncClient client;
+    private final ObjectMapper objectMapper;
 
-    public Mono<String> send(String message) {
-        return Mono.fromCallable(() -> buildRequest(message))
+    @Override
+    public Mono<String> send(User user) {
+        return Mono.fromCallable(() -> buildRequest(objectMapper.writeValueAsString(user)))
                 .flatMap(request -> Mono.fromFuture(client.sendMessage(request)))
                 .doOnNext(response -> log.debug("Message sent {}", response.messageId()))
                 .map(SendMessageResponse::messageId);
@@ -31,8 +35,4 @@ public class SQSSender implements SqsUserGateway/*implements SomeGateway*/ {
                 .build();
     }
 
-    @Override
-    public Mono<Void> sendMessage(String topic, String message) {
-        return null;
-    }
 }
