@@ -1,7 +1,7 @@
 package co.com.nequi.sqs.sender;
 
 import co.com.nequi.model.user.User;
-import co.com.nequi.model.user.gateways.SqsUserGateway;
+import co.com.nequi.model.user.gateways.IUserSqsGateway;
 import co.com.nequi.sqs.sender.config.SQSSenderProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 @Service
 @Log4j2
 @RequiredArgsConstructor
-public class SQSSender implements SqsUserGateway{
+public class ISenderSqs implements IUserSqsGateway {
     private final SQSSenderProperties properties;
     private final SqsAsyncClient client;
     private final ObjectMapper objectMapper;

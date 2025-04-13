@@ -11,7 +11,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("public.users")

@@ -1,9 +1,9 @@
 package co.com.nequi.config;
 
-import co.com.nequi.model.user.gateways.CacheRedisAdapter;
-import co.com.nequi.model.user.gateways.DynamoGateway;
-import co.com.nequi.model.user.gateways.SqsUserGateway;
-import co.com.nequi.model.user.gateways.UserPersistencePort;
+import co.com.nequi.model.user.gateways.ICacheGateway;
+import co.com.nequi.model.user.gateways.IDynamoGateway;
+import co.com.nequi.model.user.gateways.IUserSqsGateway;
+import co.com.nequi.model.user.gateways.IUserDbGateway;
 import co.com.nequi.model.user.gateways.UserWebClient;
 import co.com.nequi.usecase.queue.QueueUseCase;
 import co.com.nequi.usecase.user.UserUseCase;
@@ -14,20 +14,20 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @AllArgsConstructor
 public class BeanConfig {
-    private UserPersistencePort userPersistencePort;
+    private IUserDbGateway IUserDbGateway;
     private UserWebClient userWebClient;
-    private CacheRedisAdapter cacheRedisAdapter;
-    private SqsUserGateway sqsUserGateway;
-    private DynamoGateway dynamoGateway;
+    private ICacheGateway ICacheGateway;
+    private IUserSqsGateway iUserSqsGateway;
+    private IDynamoGateway IDynamoGateway;
 
     @Bean
     public UserUseCase userUseCase() {
-        return new UserUseCase(userPersistencePort, userWebClient, cacheRedisAdapter, sqsUserGateway);
+        return new UserUseCase(IUserDbGateway, userWebClient, ICacheGateway, iUserSqsGateway);
     }
 
     @Bean
     public QueueUseCase queueUseCase() {
-        return new QueueUseCase(dynamoGateway);
+        return new QueueUseCase(IDynamoGateway);
     }
 
 }

@@ -4,7 +4,8 @@ spring:
   application:
     name: "TallerWebflux"
   devtools:
-    add-properties: false
+    restart:
+      additional-exclude: co/com/nequi/dynamodb/entity
   h2:
     console:
       enabled: true
@@ -50,8 +51,8 @@ adapters:
     port: 5432
     database: "apiUsers"
     username: "postgres"
-    password: "root123"
-    maxInitialSize: 10
+    password: "12345"
+    maxInitialSize: 20
     maxPoolSize: 20
     maxIdleTime: 5
 

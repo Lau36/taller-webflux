@@ -1,8 +1,5 @@
 package co.com.nequi.r2dbc.config;
 
-// TODO: Load properties from the application.yaml file or from secrets manager
-// import org.springframework.boot.context.properties.ConfigurationProperties;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

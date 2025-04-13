@@ -1,58 +1,67 @@
 package co.com.nequi.usecase.user;
 
 import co.com.nequi.model.user.User;
+import co.com.nequi.model.user.enums.ErrorUser;
 import co.com.nequi.model.user.exceptions.UserException;
-import co.com.nequi.model.user.gateways.CacheRedisAdapter;
-import co.com.nequi.model.user.gateways.DynamoGateway;
-import co.com.nequi.model.user.gateways.SqsUserGateway;
-import co.com.nequi.model.user.gateways.UserPersistencePort;
+import co.com.nequi.model.user.gateways.ICacheGateway;
+import co.com.nequi.model.user.gateways.IUserSqsGateway;
+import co.com.nequi.model.user.gateways.IUserDbGateway;
 import co.com.nequi.model.user.gateways.UserWebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.logging.Logger;
+
 public class UserUseCase {
 
-    private final UserPersistencePort userPersistencePort;
+    private final IUserDbGateway userDbGateway;
     private final UserWebClient userWebClient;
-    private final CacheRedisAdapter cacheRedisAdapter;
-    private final SqsUserGateway sqsUserGateway;
+    private final ICacheGateway cacheGateway;
+    private final IUserSqsGateway userSqsGateway;
+    //private final static Logger logger = LoggerFactory.getLogger(MyClass.class);
 
-    public UserUseCase(UserPersistencePort userPersistencePort, UserWebClient userWebClient, CacheRedisAdapter cacheRedisAdapter, SqsUserGateway sqsUserGateway) {
-        this.userPersistencePort = userPersistencePort;
+    public UserUseCase(IUserDbGateway userDbGateway, UserWebClient userWebClient, ICacheGateway cacheGateway, IUserSqsGateway userSqsGateway) {
+        this.userDbGateway = userDbGateway;
         this.userWebClient = userWebClient;
-        this.cacheRedisAdapter = cacheRedisAdapter;
-        this.sqsUserGateway = sqsUserGateway;
+        this.cacheGateway = cacheGateway;
+        this.userSqsGateway = userSqsGateway;
     }
 
     public Mono<User> saveUserByApi(Long id) {
-        return userWebClient.getById(id)
-                .flatMap( user -> validateExistsUser(id)
-                        .switchIfEmpty(userPersistencePort.save(user))
-                        .then(cacheRedisAdapter.saveUser(user))
-                        .then(sqsUserGateway.send(user))
-                        .thenReturn(user)
-                );
-    }
+        return userDbGateway.findByApiId(id)
+                .switchIfEmpty(
+                userWebClient.getById(id)
+                        .flatMap(user -> userDbGateway.save(user)
+                                .flatMap(userSaved -> userSqsGateway.send(userSaved).thenReturn(userSaved)
+                                        .flatMap(cacheGateway::saveUser)
+                                )
+                )
 
-    public Mono<User> validateExistsUser(Long id) {
-        return userPersistencePort.findById(id);
+        );
     }
 
     public Mono<User> findUserById(Long id) {
-        return cacheRedisAdapter.getUserById(id)
-                .switchIfEmpty(userPersistencePort.findById(id)
-                        .flatMap(cacheRedisAdapter::saveUser)
-                        .switchIfEmpty(Mono.error(new UserException("User does not exist in database", 400)))
+        return cacheGateway.getUserById(id)
+                .switchIfEmpty(userDbGateway.findByApiId(id)
+                        .flatMap(cacheGateway::saveUser)
+                        .switchIfEmpty(Mono.error(
+                                new UserException(String.format(ErrorUser.USER_BY_ID_NOT_FOUND.getMessage(), id))
+                                                )
+                                )
 
                 );
     }
 
     public Flux<User> findAllUsers() {
-        return userPersistencePort.findAll();
+        return userDbGateway.findAll();
     }
 
     public Flux<User> findUsersByName(String name) {
-        return userPersistencePort.findByName(name);
+        return userDbGateway.findByName(name)
+                .switchIfEmpty(Flux.error(
+                        new UserException(String.format(ErrorUser.USER_BY_NAME_NOT_FOUND.getMessage(), name))
+                )
+        );
     }
 
 

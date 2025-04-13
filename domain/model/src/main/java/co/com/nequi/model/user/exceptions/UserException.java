@@ -1,10 +1,8 @@
 package co.com.nequi.model.user.exceptions;
 
 public class UserException extends RuntimeException {
-    private int statusCode;
 
-    public UserException(String message, int statusCode) {
+    public UserException(String message) {
         super(message);
-        this.statusCode = statusCode;
     }
 }

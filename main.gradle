@@ -31,6 +31,8 @@ subprojects {
 		implementation platform('software.amazon.awssdk:bom:2.31.16')
         implementation 'io.projectreactor:reactor-core'
         implementation 'io.projectreactor.addons:reactor-extra'
+//        implementation 'ch.qos.logback:logback-classic:1.5.16'
+//        implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
 
 
         testImplementation 'io.projectreactor.tools:blockhound-junit-platform:1.0.11.RELEASE'
@@ -43,6 +45,11 @@ subprojects {
         testCompileOnly  "org.projectlombok:lombok:${lombokVersion}"
         testAnnotationProcessor  "org.projectlombok:lombok:${lombokVersion}"
         implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+
+        if (!project.name.equalsIgnoreCase(modelModule) && !project.name.equalsIgnoreCase(useCaseModule)) {
+            dependencies.add("implementation", "ch.qos.logback:logback-classic:1.5.16")
+            dependencies.add("implementation", "net.logstash.logback:logstash-logback-encoder:7.4")
+        }
     }
 
     tasks.withType(Test).configureEach {

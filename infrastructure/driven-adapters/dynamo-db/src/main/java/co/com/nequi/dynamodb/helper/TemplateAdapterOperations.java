@@ -16,11 +16,11 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.function.Function;
-
 public abstract class TemplateAdapterOperations<E, K, V> {
     private final Class<V> dataClass;
     private final Function<V, E> toEntityFn;
     protected ObjectMapper mapper;
+    protected com.fasterxml.jackson.databind.ObjectMapper mapper2;
     private final DynamoDbAsyncTable<V> table;
     private final DynamoDbAsyncIndex<V> tableByIndex;
 
@@ -29,9 +29,11 @@ public abstract class TemplateAdapterOperations<E, K, V> {
                                         ObjectMapper mapper,
                                         Function<V, E> toEntityFn,
                                         String tableName,
+                                        com.fasterxml.jackson.databind.ObjectMapper mapper2,
                                         String... index) {
         this.toEntityFn = toEntityFn;
         this.mapper = mapper;
+        this.mapper2 = mapper2;
         ParameterizedType genericSuperclass = (ParameterizedType) this.getClass().getGenericSuperclass();
         this.dataClass = (Class<V>) genericSuperclass.getActualTypeArguments()[2];
         table = dynamoDbEnhancedAsyncClient.table(tableName, TableSchema.fromBean(dataClass));
@@ -87,7 +89,7 @@ public abstract class TemplateAdapterOperations<E, K, V> {
     }
 
     protected V toEntity(E model) {
-        return mapper.map(model, dataClass);
+        return mapper2.convertValue(model, dataClass);
     }
 
     protected E toModel(V data) {

@@ -1,7 +1,6 @@
 package co.com.nequi.consumer.mapper;
 
 import co.com.nequi.consumer.dto.Data;
-import co.com.nequi.consumer.dto.UsersExternalApiResponse;
 import co.com.nequi.model.user.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

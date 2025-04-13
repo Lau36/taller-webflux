@@ -1,7 +1,7 @@
 package co.com.nequi.redis.template.adapter;
 
 import co.com.nequi.model.user.User;
-import co.com.nequi.model.user.gateways.CacheRedisAdapter;
+import co.com.nequi.model.user.gateways.ICacheGateway;
 import co.com.nequi.redis.template.entity.UserCacheEntity;
 import co.com.nequi.redis.template.helper.ReactiveTemplateAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
@@ -11,9 +11,9 @@ import reactor.core.publisher.Mono;
 
 
 @Component
-public class RedisAdapter extends ReactiveTemplateAdapterOperations<User, String, UserCacheEntity> implements CacheRedisAdapter {
+public class GatewayI extends ReactiveTemplateAdapterOperations<User, String, UserCacheEntity> implements ICacheGateway {
 
-    protected RedisAdapter(ReactiveRedisConnectionFactory connectionFactory, ObjectMapper mapper) {
+    protected GatewayI(ReactiveRedisConnectionFactory connectionFactory, ObjectMapper mapper) {
         super(connectionFactory, mapper, userCacheEntity -> mapper.map(userCacheEntity, User.class));
     }
 
