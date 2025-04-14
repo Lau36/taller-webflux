@@ -1,47 +1,63 @@
 # Proyecto Base Implementando Clean Architecture
 
-## Antes de Iniciar
 
-Empezaremos por explicar los diferentes componentes del proyectos y partiremos de los componentes externos, continuando con los componentes core de negocio (dominio) y por último el inicio y configuración de la aplicación.
+## Ejecutar con Docker
 
-Lee el artículo [Clean Architecture — Aislando los detalles](https://medium.com/bancolombia-tech/clean-architecture-aislando-los-detalles-4f9530f35d7a)
+### Pasos para Ejecutar la aplicación con docker
 
-# Arquitectura
+1. Clona el repositorio y accede a la carpeta del proyecto:
+   ```sh
+   git clone https://github.com/Lau36/taller-webflux.git
+   cd deployment
+   ```
 
-![Clean Architecture](https://miro.medium.com/max/1400/1*ZdlHz8B0-qu9Y-QO3AXR_w.png)
+3. Levanta los contenedores con Docker:
+   ```sh
+   docker-compose up -d
+   ```
 
-## Domain
+4. La aplicación estará disponible en:
+   ```
+   http://localhost:8080
+   ```
 
-Es el módulo más interno de la arquitectura, pertenece a la capa del dominio y encapsula la lógica y reglas del negocio mediante modelos y entidades del dominio.
+### Configuración de la Base de Datos
 
-## Usecases
+1. Asegúrate de que el contenedor de Postgres esté corriendo y accede a el por medio de la shell:
 
-Este módulo gradle perteneciente a la capa del dominio, implementa los casos de uso del sistema, define lógica de aplicación y reacciona a las invocaciones desde el módulo de entry points, orquestando los flujos hacia el módulo de entities.
+   ```
+   docker exec -it db-postgres psql -U postgres -d apiUsers
+   ```
 
-## Infrastructure
+2. Una vez se está dentro de la base de datos, hay que crear la tabla:
+   ```mysql
+   CREATE TABLE public.users(
+    id SERIAL PRIMARY KEY,
+    apiId INT,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255)  NOT NULL
+    );
+   ```
+### Configuración de aws localstack
 
-### Helpers
+1. Corremos el siguiente comando para la configuración de las credenciales y ponemos 12345 para el valor de estas y us-east-1 como región:
 
-En el apartado de helpers tendremos utilidades generales para los Driven Adapters y Entry Points.
+   ```
+   aws configure
+   ```
 
-Estas utilidades no están arraigadas a objetos concretos, se realiza el uso de generics para modelar comportamientos
-genéricos de los diferentes objetos de persistencia que puedan existir, este tipo de implementaciones se realizan
-basadas en el patrón de diseño [Unit of Work y Repository](https://medium.com/@krzychukosobudzki/repository-design-pattern-bc490b256006)
+2. Creamos la tabla de dynamo:
+   ```
+   aws --endpoint-url=http://localhost:4566 dynamodb create-table --table-name users --key-schema AttributeName=id,KeyType=HASH --attribute-definitions AttributeName=id,AttributeType=N --billing-mode PAY_PER_REQUEST --region us-east-1
+   ```
+3. Creamos la cola sqs:
+   ```
+   aws --endpoint-url=http://localhost:4566 sqs create-queue --queue-name UsersQueue
+   ```
+4. Para ver la base de datos de dynamo se puede hacer con el siguiente comando:
+   ```
+   aws dynamodb scan --table-name users --endpoint-url http://localhost:4566 --region us-east-1
+   ```
 
-Estas clases no puede existir solas y debe heredarse su compartimiento en los **Driven Adapters**
 
-### Driven Adapters
-
-Los driven adapter representan implementaciones externas a nuestro sistema, como lo son conexiones a servicios rest,
-soap, bases de datos, lectura de archivos planos, y en concreto cualquier origen y fuente de datos con la que debamos
-interactuar.
-
-### Entry Points
-
-Los entry points representan los puntos de entrada de la aplicación o el inicio de los flujos de negocio.
-
-## Application
-
-Este módulo es el más externo de la arquitectura, es el encargado de ensamblar los distintos módulos, resolver las dependencias y crear los beans de los casos de use (UseCases) de forma automática, inyectando en éstos instancias concretas de las dependencias declaradas. Además inicia la aplicación (es el único módulo del proyecto donde encontraremos la función “public static void main(String[] args)”.
-
-**Los beans de los casos de uso se disponibilizan automaticamente gracias a un '@ComponentScan' ubicado en esta capa.**

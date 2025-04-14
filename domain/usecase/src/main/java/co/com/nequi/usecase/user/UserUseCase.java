@@ -1,7 +1,7 @@
 package co.com.nequi.usecase.user;
 
 import co.com.nequi.model.user.User;
-import co.com.nequi.model.user.enums.ErrorUser;
+import co.com.nequi.model.user.enums.UsersErrors;
 import co.com.nequi.model.user.exceptions.UserException;
 import co.com.nequi.model.user.gateways.ICacheGateway;
 import co.com.nequi.model.user.gateways.IUserSqsGateway;
@@ -9,8 +9,6 @@ import co.com.nequi.model.user.gateways.IUserDbGateway;
 import co.com.nequi.model.user.gateways.UserWebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.logging.Logger;
 
 public class UserUseCase {
 
@@ -45,7 +43,7 @@ public class UserUseCase {
                 .switchIfEmpty(userDbGateway.findByApiId(id)
                         .flatMap(cacheGateway::saveUser)
                         .switchIfEmpty(Mono.error(
-                                new UserException(String.format(ErrorUser.USER_BY_ID_NOT_FOUND.getMessage(), id))
+                                new UserException(String.format(UsersErrors.USER_BY_ID_NOT_FOUND.getMessage(), id))
                                                 )
                                 )
 
@@ -59,7 +57,7 @@ public class UserUseCase {
     public Flux<User> findUsersByName(String name) {
         return userDbGateway.findByName(name)
                 .switchIfEmpty(Flux.error(
-                        new UserException(String.format(ErrorUser.USER_BY_NAME_NOT_FOUND.getMessage(), name))
+                        new UserException(String.format(UsersErrors.USER_BY_NAME_NOT_FOUND.getMessage(), name))
                 )
         );
     }

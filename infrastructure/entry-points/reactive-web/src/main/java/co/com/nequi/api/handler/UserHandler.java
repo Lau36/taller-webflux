@@ -45,31 +45,30 @@ public class UserHandler {
     public Mono<ServerResponse> findUsersByName(ServerRequest serverRequest) {
         return Mono.defer(() -> {
             String name = serverRequest.pathVariable("name");
-            return userUseCase.findUsersByName(name)
-                    .collectList()
-                    .flatMap(users -> ServerResponse.ok().bodyValue(users))
-                    .onErrorResume(UserException.class,
-                            ex -> ServerResponse.status(HttpStatus.NOT_FOUND).bodyValue(ex.getMessage()))
-                    .onErrorResume(e -> {
-                        log.error(e.getMessage(), e);
-                        return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue(e.getMessage());
-                    });
-        });
+            return userUseCase.findUsersByName(name).collectList();
+
+        })
+                .flatMap(users -> ServerResponse.ok().bodyValue(users))
+                .onErrorResume(UserException.class,
+                        ex -> ServerResponse.status(HttpStatus.NOT_FOUND).bodyValue(ex.getMessage()))
+                .onErrorResume(e -> {
+                    log.error(e.getMessage(), e);
+                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue(e.getMessage());
+                });
     }
 
     public Mono<ServerResponse> findUserById(ServerRequest serverRequest) {
         return Mono.defer(() ->{
             String userId = serverRequest.pathVariable("id");
-            return userUseCase.findUserById(Long.parseLong(userId))
-                    .flatMap(user -> ServerResponse.ok().bodyValue(user))
-                    .onErrorResume(UserException.class,
-                            ex -> ServerResponse.status(HttpStatus.NOT_FOUND).bodyValue(ex.getMessage()))
-                    .onErrorResume(
-                            e -> {
-                                log.error(e.getMessage(), e);
-                                return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue(e.getMessage());
-                            }
-                    );
-        });
+            return userUseCase.findUserById(Long.parseLong(userId));
+        }).flatMap(user -> ServerResponse.ok().bodyValue(user))
+                .onErrorResume(UserException.class,
+                        ex -> ServerResponse.status(HttpStatus.NOT_FOUND).bodyValue(ex.getMessage()))
+                .onErrorResume(
+                        e -> {
+                            log.error(e.getMessage(), e);
+                            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).bodyValue(e.getMessage());
+                        }
+                );
     }
 }
