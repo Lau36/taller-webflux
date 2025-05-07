@@ -8,26 +8,27 @@ import co.com.nequi.model.user.gateways.UserWebClient;
 import co.com.nequi.usecase.queue.QueueUseCase;
 import co.com.nequi.usecase.user.UserUseCase;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @AllArgsConstructor
 public class BeanConfig {
-    private IUserDbGateway IUserDbGateway;
+    private IUserDbGateway userDbGateway;
     private UserWebClient userWebClient;
-    private ICacheGateway ICacheGateway;
-    private IUserSqsGateway iUserSqsGateway;
-    private IDynamoGateway IDynamoGateway;
+    private ICacheGateway cacheGateway;
+    private IUserSqsGateway userSqsGateway;
+    private IDynamoGateway dynamoGateway;
 
     @Bean
     public UserUseCase userUseCase() {
-        return new UserUseCase(IUserDbGateway, userWebClient, ICacheGateway, iUserSqsGateway);
+        return new UserUseCase(userDbGateway, userWebClient, cacheGateway, userSqsGateway);
     }
 
     @Bean
     public QueueUseCase queueUseCase() {
-        return new QueueUseCase(IDynamoGateway);
+        return new QueueUseCase(dynamoGateway);
     }
 
 }

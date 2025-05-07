@@ -1,6 +1,8 @@
 package co.com.nequi.sqs.listener;
 
 import co.com.nequi.model.user.User;
+import co.com.nequi.model.user.enums.TechnicalMessage;
+import co.com.nequi.model.user.exceptions.TechnicalException;
 import co.com.nequi.usecase.queue.QueueUseCase;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +44,7 @@ public class SQSProcessor implements Function<Message, Mono<Void>> {
             );
         }catch (Exception e) {
             logger.error("Error converting message body to user", e);
-            throw new RuntimeException("erro mapping", e);
+            throw new TechnicalException(TechnicalMessage.ERROR_MAPPING);
         }
 
     }

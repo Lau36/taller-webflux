@@ -1,6 +1,8 @@
 package co.com.nequi.sqs.sender;
 
 import co.com.nequi.model.user.User;
+import co.com.nequi.model.user.enums.TechnicalMessage;
+import co.com.nequi.model.user.exceptions.TechnicalException;
 import co.com.nequi.model.user.gateways.IUserSqsGateway;
 import co.com.nequi.sqs.sender.config.SQSSenderProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +27,7 @@ public class ISenderSqs implements IUserSqsGateway {
         return Mono.fromCallable(() -> buildRequest(objectMapper.writeValueAsString(user)))
                 .flatMap(request -> Mono.fromFuture(client.sendMessage(request)))
                 .doOnNext(response -> log.debug("Message sent {}", response.messageId()))
+                .onErrorResume(ex -> Mono.error(new TechnicalException(TechnicalMessage.SQS_ERROR)))
                 .map(SendMessageResponse::messageId);
     }
 

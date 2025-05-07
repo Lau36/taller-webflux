@@ -1,6 +1,8 @@
 package co.com.nequi.r2dbc;
 
 import co.com.nequi.model.user.User;
+import co.com.nequi.model.user.enums.TechnicalMessage;
+import co.com.nequi.model.user.exceptions.TechnicalException;
 import co.com.nequi.model.user.gateways.IUserDbGateway;
 import co.com.nequi.r2dbc.entity.UserEntity;
 import co.com.nequi.r2dbc.helper.ReactiveAdapterOperations;
@@ -30,6 +32,7 @@ public class MyReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     @Override
     public Flux<User> findByName(String name) {
         return repository.findByFirstNameIgnoreCase(name)
+                .onErrorResume(ex -> Mono.error(new TechnicalException(TechnicalMessage.DB_ERROR)))
                 .map(this::toEntity);
     }
 

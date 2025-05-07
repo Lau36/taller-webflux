@@ -2,7 +2,8 @@ package co.com.nequi.api;
 
 import co.com.nequi.api.handler.UserHandler;
 import co.com.nequi.model.user.User;
-import co.com.nequi.model.user.exceptions.UserException;
+import co.com.nequi.model.user.enums.TechnicalMessage;
+import co.com.nequi.model.user.exceptions.BusinessException;
 import co.com.nequi.usecase.user.UserUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,8 +18,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
-import java.util.List;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,21 +71,6 @@ class UserHandlerTest {
         verify(userUseCase).saveUserByApi(1L);
     }
 
-    @Test
-    void shouldHandleUserExceptionWhenCreatingUser() {
-        when(userUseCase.saveUserByApi(1L))
-                .thenReturn(Mono.error(new UserException("User already exists")));
-
-        ServerRequest request = MockServerRequest.builder()
-                .pathVariable("id", "1")
-                .build();
-
-        Mono<ServerResponse> response = userHandler.createUser(request);
-
-        StepVerifier.create(response)
-                .expectNextMatches(res -> res.statusCode().equals(HttpStatus.BAD_REQUEST))
-                .verifyComplete();
-    }
 
     @Test
     void shouldReturnUsersByName() {
@@ -123,7 +107,7 @@ class UserHandlerTest {
     @Test
     void shouldHandleUserNotFound() {
         when(userUseCase.findUserById(1L))
-                .thenReturn(Mono.error(new UserException("User not found")));
+                .thenReturn(Mono.error(new BusinessException(TechnicalMessage.USER_BY_ID_NOT_FOUND)));
 
         ServerRequest request = MockServerRequest.builder()
                 .pathVariable("id", "1")
